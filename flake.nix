@@ -21,11 +21,10 @@
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
             zig
+            git
           ];
 
           shellHook = ''
-            export PKG_CONFIG_PATH="${pkgs.notcurses}/lib/pkgconfig:$PKG_CONFIG_PATH"
-            export LIBRARY_PATH="${pkgs.libdeflate}/lib:$LIBRARY_PATH"
             echo "Development environment loaded with zig"
           '';
         };

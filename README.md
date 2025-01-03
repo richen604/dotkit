@@ -25,6 +25,33 @@ The idea is simple: have some structure, but don't box anyone in. Want to:
 
 Integrate dotkit as much or as little as you want to your workflow!
 
+## Quick Start
+
+### Prerequisites
+- [Zig](https://ziglang.org/) 0.13.0 or later
+- [Git](https://git-scm.com/)
+
+### Build from Source
+
+```bash
+# Clone the repository
+git clone https://github.com/richen604/dotkit.git
+cd dotkit
+
+# Build and run
+zig build run
+```
+
+Nix users can use the flake or direnv to install the dependencies.
+
+```bash
+# Using direnv
+direnv allow
+
+# Using flake
+nix-shell
+```
+
 ## Comparison with Existing Tools
 
 Dotkit is designed to be an *addition* to existing tools in the dotfile space like GNU Stow, Chezmoi, etc.
@@ -271,9 +298,9 @@ dotkit eject [module]            # ejects by converting symlinks to regular file
 ## Development Phases
 
 ### Phase 1: MVP Foundation (Week 1-2)
-- [ ] Basic project structure setup
-- [ ] Pretty cli output utilities
-- [ ] Basic CLI (install/remove/list)
+- [x] Basic project structure setup
+- [x] Pretty cli output utilities
+- [x] Basic CLI (install/remove/list)
 - [ ] Simple YAML config parser
 - [ ] Core symlink operations (create/remove)
 - [ ] Essential error handling
