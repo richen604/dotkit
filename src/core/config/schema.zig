@@ -107,24 +107,27 @@ pub const GlobalConfig = struct {
     description: ?[]const u8 = null,
     backup_path: ?[]const u8 = null,
     hooks: ?Hooks = null,
-    modules: std.StringHashMap([]Source),
+    // Simple array of named module sources instead of a HashMap
+    modules: []ModuleEntry,
 
-    pub fn init(allocator: std.mem.Allocator) GlobalConfig {
+    // New type to keep module name with its sources
+    pub const ModuleEntry = struct {
+        name: []const u8,
+        sources: []Source,
+    };
+
+    pub fn init() GlobalConfig {
         return .{
             .name = null,
             .namespace = "",
             .description = null,
             .backup_path = null,
             .hooks = null,
-            .modules = std.StringHashMap([]Source).init(allocator),
+            .modules = &[_]ModuleEntry{},
         };
     }
 
     pub fn validate(self: GlobalConfig) !void {
         if (self.namespace.len == 0) return error.MissingNamespace;
-    }
-
-    pub fn deinit(self: *GlobalConfig) void {
-        self.modules.deinit();
     }
 };

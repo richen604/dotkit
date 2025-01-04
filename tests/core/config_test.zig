@@ -44,12 +44,49 @@ test "@core.config.source" {
 }
 
 test "@core.config.global_config" {
-    var config = schema.GlobalConfig.init(testing.allocator);
-    defer config.deinit();
-
+    var config = schema.GlobalConfig.init();
+    config.name = "test";
     config.namespace = "test";
+
+    // Create sources array without making it const
+    var sources = [_]schema.Source{
+        .{
+            .type = .git,
+            .url = "https://github.com/example/repo1.git",
+            .enable = true,
+        },
+        .{
+            .type = .git,
+            .url = "https://github.com/example/repo2.git",
+            .enable = true,
+        },
+    };
+
+    // Create module entries array without making it const
+    const module_entry = schema.GlobalConfig.ModuleEntry{
+        .name = "test_module",
+        .sources = &sources,
+    };
+
+    var modules = [_]schema.GlobalConfig.ModuleEntry{module_entry};
+    config.modules = &modules;
+
     try config.validate();
 
-    std.debug.print("@core.config.global_config result: {{ name: {?s}, namespace: '{s}', " ++
-        "description: {?s}, backup_path: {?s}, hooks: {?} }}\n", .{ config.name, config.namespace, config.description, config.backup_path, config.hooks });
+    std.debug.print("@core.config.global_config result: {{ name: {?s}, namespace: '{s}', description: {?s}, " ++
+        "backup_path: {?s}, hooks: {?}, modules: [{{ name: '{?s}', sources: [{{ type: {any}, url: '{?s}' }}, " ++
+        "{{ type: {any}, url: '{?s}' }}] }}] }}\n", .{
+        config.name,
+        config.namespace,
+        config.description,
+        config.backup_path,
+        config.hooks,
+        module_entry.name,
+        sources[0].type,
+        sources[0].url,
+        sources[1].type,
+        sources[1].url,
+    });
 }
+
+// TODO: sub modules inherit
