@@ -22,10 +22,11 @@
           buildInputs = with pkgs; [
             zig
             git
+            lldb
           ];
 
           shellHook = ''
-            echo "Development environment loaded with zig"
+            echo "Zig version: $(zig version)"
           '';
         };
       }

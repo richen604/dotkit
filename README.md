@@ -191,9 +191,6 @@ description: A fast GPU-accelerated terminal emulator
 dependencies: 
     - alacritty
     - fonts-firacode
-source: 
-    type: path # path, git
-    location: ./alacritty
 config_path: ~/.config/alacritty
 files:
     - source: ./alacritty/alacritty.toml
@@ -239,7 +236,7 @@ modules:
             location: ./alacritty
             enable: true  # Controls if this module source is active
         - source:
-            type: git # must have a config.yaml file
+            type: git
             url: https://github.com/my-alacritty-config.git
             branch: main  # optional
             ref: v1.0.0  # optional

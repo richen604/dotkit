@@ -45,7 +45,14 @@ fn createExecutable(
         .optimize = optimize,
     });
 
+    // Add version options
     exe.root_module.addOptions("version", version_options);
+
+    // Add ymlz dependency
+    const ymlz_dep = b.dependency("ymlz", .{});
+    const ymlz_module = ymlz_dep.module("root");
+    exe.root_module.addImport("ymlz", ymlz_module);
+
     return exe;
 }
 
@@ -66,33 +73,70 @@ fn createTestStep(
     target: std.Build.ResolvedTarget,
     optimize: std.builtin.OptimizeMode,
 ) void {
-    const unit_tests = b.addTest(.{
-        .root_source_file = b.path("src/main.zig"),
-        .target = target,
-        .optimize = optimize,
+    // Create a test step that will run all tests
+    const test_step = b.step("test", "Run all tests");
+
+    // Add all test files here
+    const test_files = [_][]const u8{
+        "src/main.zig",
+        "tests/core/config_test.zig",
+        "tests/core/ymlz_test.zig",
+        "tests/core/parser_test.zig",
+    };
+
+    // Create ymlz dependency once
+    const ymlz_dep = b.dependency("ymlz", .{});
+    const ymlz_module = ymlz_dep.module("root");
+
+    // Create core module with ymlz dependency
+    const core_module = b.createModule(.{
+        .root_source_file = b.path("src/core.zig"),
+        .imports = &.{
+            .{ .name = "ymlz", .module = ymlz_module },
+        },
     });
 
-    const run_unit_tests = b.addRunArtifact(unit_tests);
-    const test_step = b.step("test", "Run unit tests");
-    test_step.dependOn(&run_unit_tests.step);
+    // Create and configure each test artifact
+    for (test_files) |test_file| {
+        // Extract just the filename without path and extension
+        const basename = std.fs.path.basename(test_file);
+        const name = b.fmt("test_{s}", .{basename[0 .. basename.len - 4]}); // Remove .zig extension
+
+        const test_artifact = b.addTest(.{
+            .root_source_file = b.path(test_file),
+            .target = target,
+            .optimize = optimize,
+            .name = name,
+        });
+
+        // Add required dependencies
+        test_artifact.root_module.addImport("core", core_module);
+        test_artifact.root_module.addImport("ymlz", ymlz_module);
+
+        // Create run step for this test
+        const run_test = b.addRunArtifact(test_artifact);
+
+        // Make test output visible
+        run_test.has_side_effects = true;
+
+        // Add to main test step
+        test_step.dependOn(&run_test.step);
+    }
 }
 
 fn getVersion(b: *std.Build) ![]const u8 {
-    // Extracts version string from build.zig.zon file
-    // Format expected: .version = "x.y.z"
     const zon_contents = try std.fs.cwd().readFileAlloc(b.allocator, "build.zig.zon", 1024 * 1024);
     defer b.allocator.free(zon_contents);
 
     var i: usize = 0;
     while (i < zon_contents.len) : (i += 1) {
         if (std.mem.startsWith(u8, zon_contents[i..], ".version")) {
-            // Extract version value between quotes
             while (i < zon_contents.len) : (i += 1) {
                 if (zon_contents[i] == '"') {
                     i += 1;
                     const version_start = i;
                     while (i < zon_contents.len and zon_contents[i] != '"') : (i += 1) {}
-                    return b.dupe(zon_contents[version_start..i]);
+                    return b.allocator.dupe(u8, zon_contents[version_start..i]);
                 }
             }
         }
