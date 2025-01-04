@@ -32,26 +32,34 @@ pub const Hooks = struct {
     }
 };
 
-/// TODO: add module type
 /// Source types for module configurations
 pub const SourceType = enum {
     path,
     git,
+    module,
 };
 
 /// Represents a module source configuration
 pub const Source = struct {
-    type: SourceType,
-    location: ?[]const u8 = null, // for path type
-    url: ?[]const u8 = null, // for git type
+    type: ?SourceType = null,
+    location: ?[]const u8 = null,
+    url: ?[]const u8 = null,
+    module: ?ModuleConfig = null,
     branch: ?[]const u8 = null,
     ref: ?[]const u8 = null,
     enable: bool = false,
     config: ?ModuleConfig = null,
 
+    pub fn inferType(self: Source) SourceType {
+        if (self.module != null) return .module;
+        if (self.url != null) return .git;
+        if (self.location != null) return .path;
+        return .path; // default to path type
+    }
+
     pub fn init() Source {
         return .{
-            .type = .path,
+            .type = null,
             .location = null,
             .url = null,
             .branch = null,
@@ -61,10 +69,16 @@ pub const Source = struct {
         };
     }
 
-    pub fn validate(self: Source) !void {
-        switch (self.type) {
+    pub fn validate(self: *Source) !void {
+        // Infer and set type if not explicitly set
+        if (self.type == null) {
+            self.type = self.inferType();
+        }
+
+        switch (self.type.?) {
             .path => if (self.location == null) return error.MissingPathLocation,
             .git => if (self.url == null) return error.MissingGitUrl,
+            .module => if (self.module == null) return error.MissingModuleConfig,
         }
     }
 };
@@ -129,5 +143,12 @@ pub const GlobalConfig = struct {
 
     pub fn validate(self: GlobalConfig) !void {
         if (self.namespace.len == 0) return error.MissingNamespace;
+
+        // Validate all sources in all modules
+        for (self.modules) |module| {
+            for (module.sources) |*source| {
+                try source.validate();
+            }
+        }
     }
 };

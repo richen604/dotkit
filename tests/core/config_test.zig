@@ -34,13 +34,35 @@ test "@core.config.module_config" {
 }
 
 test "@core.config.source" {
-    var source = schema.Source.init();
-    source.type = .git;
-    source.url = "https://github.com/example/repo.git";
-    try source.validate();
+    // Test git source inference
+    var git_source = schema.Source.init();
+    git_source.url = "https://github.com/example/repo.git";
+    try testing.expectEqual(git_source.inferType(), .git);
+    try git_source.validate();
 
-    std.debug.print("@core.config.source result: {{ type: {}, location: {?s}, url: {?s}, " ++
-        "branch: {?s}, ref: {?s}, enable: {}, config: {?} }}\n", .{ source.type, source.location, source.url, source.branch, source.ref, source.enable, source.config });
+    // Test path source inference
+    var path_source = schema.Source.init();
+    path_source.location = "./local/path";
+    try testing.expectEqual(path_source.inferType(), .path);
+    try path_source.validate();
+
+    // Test module source inference
+    const module_config = schema.ModuleConfig{
+        .name = "test_module",
+        .namespace = "test",
+        .category = "test",
+        .files = &[_]schema.FileMapping{},
+    };
+
+    var module_source = schema.Source.init();
+    module_source.module = module_config;
+    try testing.expectEqual(module_source.inferType(), .module);
+    try module_source.validate();
+
+    std.debug.print("@core.config.source results:\n" ++
+        "Git source: {{ type: {}, url: {?s} }}\n" ++
+        "Path source: {{ type: {}, location: {?s} }}\n" ++
+        "Module source: {{ type: {}, module: {{ name: {s} }} }}\n", .{ git_source.inferType(), git_source.url, path_source.inferType(), path_source.location, module_source.inferType(), module_source.module.?.name });
 }
 
 test "@core.config.global_config" {
@@ -51,12 +73,10 @@ test "@core.config.global_config" {
     // Create sources array without making it const
     var sources = [_]schema.Source{
         .{
-            .type = .git,
             .url = "https://github.com/example/repo1.git",
             .enable = true,
         },
         .{
-            .type = .git,
             .url = "https://github.com/example/repo2.git",
             .enable = true,
         },
@@ -88,5 +108,3 @@ test "@core.config.global_config" {
         sources[1].url,
     });
 }
-
-// TODO: sub modules inherit

@@ -221,31 +221,29 @@ hooks:
 name: my-dotfiles # optional name
 namespace: johndoe # namespace is used to prevent conflicts
 description: My personal dotfiles for hyprland
-
-# Core paths
 backup_path: ~/.local/state/dotkit/backup # default
-
 # Global hooks, runs before any module is installed
 hooks: 
-
 modules:
     terminal:
+        # Path type (inferred)
         - source:
-            type: path
             location: ./alacritty
-            enable: true  # Controls if this module source is active
+            enable: true
+        # Git type (inferred)
         - source:
-            type: git
             url: https://github.com/my-alacritty-config.git
-            branch: main  # optional
-            ref: v1.0.0  # optional
-            enable: false # Disabled by default
+            branch: main
+            ref: v1.0.0
+            enable: false
+        # Module type (inferred)
         - source:
-            type: module
-            config: # inline module definition
+            config:
                 name: alacritty
                 category: terminal
-                # ... rest of module config ...
+                files:
+                    - source: ./alacritty.toml
+                      target: ~/.config/alacritty/alacritty.toml
 ```
 
 ### Example Configuration Directory
