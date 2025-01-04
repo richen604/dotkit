@@ -126,7 +126,6 @@ YAML-based configuration files that define:
 Core operations:
 - Module validation and loading
 - Installation/removal
-- Dependency handling
 - Source management
 
 ### Symlink Manager
