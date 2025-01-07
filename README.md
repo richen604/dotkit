@@ -313,8 +313,8 @@ dotkit eject [module]            # ejects by converting symlinks to regular file
 - [x] Basic project structure setup
 - [x] Pretty cli output utilities
 - [x] Basic CLI (install/remove/list)
-- [ ] Simple YAML config parser
-- [ ] Core symlink operations (create/remove)
+- [x] Simple TOML config parser
+- [x] Core symlink operations (create/remove)
 - [ ] Essential error handling
 - [ ] Unit test framework
 

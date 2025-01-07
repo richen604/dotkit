@@ -7,6 +7,9 @@ fn TomlParseError(comptime T: type) type {
     return @typeInfo(@typeInfo(@TypeOf(toml.Parser(T).parseFile)).Fn.return_type.?).ErrorUnion.error_set;
 }
 
+// TODO: perf: optimize memory usage by avoiding double allocation in config parsing
+// Consider taking ownership of result.value instead of cloning
+
 /// Combined error set for parsing operations
 pub const ParseError = TomlParseError(schema.ModuleConfig) || schema.ConfigError;
 
