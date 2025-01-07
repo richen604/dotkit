@@ -1,42 +1,43 @@
 const std = @import("std");
 const schema = @import("schema.zig");
-const Ymlz = @import("ymlz").Ymlz;
-const validator = @import("validator.zig");
+const toml = @import("toml");
 
-pub const ParseError = error{
-    FileNotFound,
-    InvalidConfig,
-    OutOfMemory,
-    InvalidCharacter,
-    Unseekable,
-} || std.fs.File.OpenError || std.fs.File.ReadError;
+/// Get the error set from the TOML parser's parseFile function
+fn TomlParseError(comptime T: type) type {
+    return @typeInfo(@typeInfo(@TypeOf(toml.Parser(T).parseFile)).Fn.return_type.?).ErrorUnion.error_set;
+}
+
+/// Combined error set for parsing operations
+pub const ParseError = TomlParseError(schema.ModuleConfig) || schema.ConfigError;
 
 pub fn loadModuleConfig(allocator: std.mem.Allocator, path: []const u8) ParseError!schema.ModuleConfig {
-    // Read file contents
-    const content = try std.fs.cwd().readFileAlloc(allocator, path, 1024 * 1024);
-    defer allocator.free(content);
+    var parser = toml.Parser(schema.ModuleConfig).init(allocator);
+    defer parser.deinit();
 
-    // Parse YAML into ModuleConfig
-    var ymlz = try Ymlz(schema.ModuleConfig).init(allocator);
-    const config = try ymlz.loadRaw(content);
+    var result = try parser.parseFile(path);
 
-    // Validate the config
+    var config = result.value;
     try config.validate();
 
-    return config;
+    // Create a deep copy of the config to return
+    const copied_config = try config.clone(allocator);
+    result.deinit();
+
+    return copied_config;
 }
 
 pub fn loadGlobalConfig(allocator: std.mem.Allocator, path: []const u8) ParseError!schema.GlobalConfig {
-    // Read file contents
-    const content = try std.fs.cwd().readFileAlloc(allocator, path, 1024 * 1024);
-    defer allocator.free(content);
+    var parser = toml.Parser(schema.GlobalConfig).init(allocator);
+    defer parser.deinit();
 
-    // Parse YAML into GlobalConfig
-    var ymlz = try Ymlz(schema.GlobalConfig).init(allocator);
-    var config = try ymlz.loadRaw(content);
+    var result = try parser.parseFile(path);
 
-    // Validate the config
+    var config = result.value;
     try config.validate();
 
-    return config;
+    // Create a deep copy of the config to return
+    const copied_config = try config.clone(allocator);
+    result.deinit();
+
+    return copied_config;
 }

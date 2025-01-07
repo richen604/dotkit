@@ -1,0 +1,11 @@
+namespace = "test-global"
+name = "test-config"
+description = "A test global config"
+backup_path = "~/.backup"
+
+[[modules]]
+name = "core"
+[[modules.sources]]
+type = "git"
+url = "https://github.com/example/core.git"
+enable = true

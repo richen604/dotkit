@@ -4,7 +4,7 @@ const schema = @import("core").config.schema;
 const Ymlz = @import("ymlz").Ymlz;
 
 test "@core.config.file_mapping" {
-    const mapping = schema.FileMapping.init();
+    const mapping = schema.FileMapping{};
     try testing.expectEqualStrings("", mapping.source);
     try testing.expectEqualStrings("", mapping.target);
     try testing.expect(!mapping.executable);
@@ -13,10 +13,11 @@ test "@core.config.file_mapping" {
 }
 
 test "@core.config.module_config" {
-    var config = schema.ModuleConfig.init();
-    config.name = "test";
-    config.namespace = "test";
-    config.category = "test";
+    var config = schema.ModuleConfig{
+        .name = "test",
+        .namespace = "test",
+        .category = "test",
+    };
     try config.validate();
 
     std.debug.print("@core.config.module_config result: {{ name: '{s}', namespace: '{s}', " ++
@@ -35,14 +36,16 @@ test "@core.config.module_config" {
 
 test "@core.config.source" {
     // Test git source inference
-    var git_source = schema.Source.init();
-    git_source.url = "https://github.com/example/repo.git";
+    var git_source = schema.Source{
+        .url = "https://github.com/example/repo.git",
+    };
     try testing.expectEqual(git_source.inferType(), .git);
     try git_source.validate();
 
     // Test path source inference
-    var path_source = schema.Source.init();
-    path_source.location = "./local/path";
+    var path_source = schema.Source{
+        .location = "./local/path",
+    };
     try testing.expectEqual(path_source.inferType(), .path);
     try path_source.validate();
 
@@ -51,11 +54,11 @@ test "@core.config.source" {
         .name = "test_module",
         .namespace = "test",
         .category = "test",
-        .files = &[_]schema.FileMapping{},
     };
 
-    var module_source = schema.Source.init();
-    module_source.module = module_config;
+    var module_source = schema.Source{
+        .module = module_config,
+    };
     try testing.expectEqual(module_source.inferType(), .module);
     try module_source.validate();
 
@@ -66,11 +69,6 @@ test "@core.config.source" {
 }
 
 test "@core.config.global_config" {
-    var config = schema.GlobalConfig.init();
-    config.name = "test";
-    config.namespace = "test";
-
-    // Create sources array without making it const
     var sources = [_]schema.Source{
         .{
             .url = "https://github.com/example/repo1.git",
@@ -82,14 +80,24 @@ test "@core.config.global_config" {
         },
     };
 
-    // Create module entries array without making it const
-    const module_entry = schema.GlobalConfig.ModuleEntry{
-        .name = "test_module",
-        .sources = &sources,
+    // Create a slice from the array
+    const sources_slice = sources[0..];
+
+    var module_entries = [_]schema.GlobalConfig.ModuleEntry{
+        .{
+            .name = "test_module",
+            .sources = sources_slice,
+        },
     };
 
-    var modules = [_]schema.GlobalConfig.ModuleEntry{module_entry};
-    config.modules = &modules;
+    // Create a slice from the module entries array
+    const modules_slice = module_entries[0..];
+
+    var config = schema.GlobalConfig{
+        .name = "test",
+        .namespace = "test",
+        .modules = modules_slice,
+    };
 
     try config.validate();
 
@@ -101,7 +109,7 @@ test "@core.config.global_config" {
         config.description,
         config.backup_path,
         config.hooks,
-        module_entry.name,
+        config.modules[0].name,
         sources[0].type,
         sources[0].url,
         sources[1].type,

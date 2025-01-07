@@ -48,10 +48,10 @@ fn createExecutable(
     // Add version options
     exe.root_module.addOptions("version", version_options);
 
-    // Add ymlz dependency
-    const ymlz_dep = b.dependency("ymlz", .{});
-    const ymlz_module = ymlz_dep.module("root");
-    exe.root_module.addImport("ymlz", ymlz_module);
+    // Add toml dependency
+    const toml_dep = b.dependency("zig-toml", .{});
+    const toml_module = toml_dep.module("zig-toml");
+    exe.root_module.addImport("toml", toml_module);
 
     return exe;
 }
@@ -80,20 +80,19 @@ fn createTestStep(
     const test_files = [_][]const u8{
         "src/main.zig",
         "tests/core/config_test.zig",
-        "tests/core/ymlz_test.zig",
-        // TODO: fix optionals error from Ymlz
-        // "tests/core/parser_test.zig",
+        "tests/core/zig-toml_test.zig",
+        "tests/core/parser_test.zig",
     };
 
-    // Create ymlz dependency once
-    const ymlz_dep = b.dependency("ymlz", .{});
-    const ymlz_module = ymlz_dep.module("root");
+    // Create toml dependency once
+    const toml_dep = b.dependency("zig-toml", .{});
+    const toml_module = toml_dep.module("zig-toml");
 
-    // Create core module with ymlz dependency
+    // Create core module with toml dependency
     const core_module = b.createModule(.{
         .root_source_file = b.path("src/core.zig"),
         .imports = &.{
-            .{ .name = "ymlz", .module = ymlz_module },
+            .{ .name = "toml", .module = toml_module },
         },
     });
 
@@ -112,7 +111,7 @@ fn createTestStep(
 
         // Add required dependencies
         test_artifact.root_module.addImport("core", core_module);
-        test_artifact.root_module.addImport("ymlz", ymlz_module);
+        test_artifact.root_module.addImport("toml", toml_module);
 
         // Create run step for this test
         const run_test = b.addRunArtifact(test_artifact);

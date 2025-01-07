@@ -23,9 +23,9 @@
     // Once all dependencies are fetched, `zig build` no longer requires
     // internet connectivity.
     .dependencies = .{
-        .ymlz = .{
-            .url = "https://github.com/pwbh/ymlz/archive/refs/tags/0.3.5.zip",
-            .hash = "1220b60e49b81eece8322539d17ef8fe6138d0ec18d7bff1b2a89bd305b926b7d336",
+        .@"zig-toml" = .{
+            .url = "https://github.com/Al-Ghoul/zig-toml/archive/main.tar.gz",
+            .hash = "12207bd746ca8a0d0ed614f0eb73df2103f32d786415cd9cb940b8c92e89d8f00852",
         },
     },
     .paths = .{
