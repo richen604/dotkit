@@ -181,75 +181,93 @@ build.zig.zon                 # Build dependencies
 ### Module Configuration Format
 Each module configuration includes:
 
-```yaml
-name: alacritty
-namespace: johndoe # namespaces are used to prevent conflicts
-category: terminal
-description: A fast GPU-accelerated terminal emulator
+```toml
+# Basic module metadata
+name = "alacritty"
+namespace = "johndoe" # namespaces are used to prevent conflicts
+category = "terminal"
+description = "A fast GPU-accelerated terminal emulator"
+
 # metadata only, does not install dependencies
-dependencies: 
-    - alacritty
-    - fonts-firacode
-config_path: ~/.config/alacritty
-files:
-    - source: ./alacritty/alacritty.toml
-      target: ~/.config/alacritty/alacritty.toml
+dependencies = [
+    "alacritty",
+    "fonts-firacode"
+]
 
-    # folders can be symlinked as well
-    - source: ./alacritty/scripts/**
-      target: ~/.config/alacritty/scripts/
-      executable: true # default is false
+config_path = "~/.config/alacritty"
 
-    # some programs have daemons that need to be started
-    - source: ./alacritty/alacritty.desktop
-      target: ~/.config/autostart/alacritty.desktop
-hooks:
-    start:
-        - ./scripts/start-alacritty.sh # start the program with command or custom script
-    pre_install:
-        - ./scripts/install-deps.sh
-        - mkdir -p ~/.config/alacritty
-    post_install:
-        - alacritty --version
-    pre_remove:
-        - ./scripts/uninstall-deps.sh
+[[files]]
+source = "./alacritty/alacritty.toml"
+target = "~/.config/alacritty/alacritty.toml"
+
+# folders can be symlinked as well
+[[files]]
+source = "./alacritty/scripts/**"
+target = "~/.config/alacritty/scripts/"
+executable = true # default is false
+
+# some programs have daemons that need to be started
+[[files]]
+source = "./alacritty/alacritty.desktop"
+target = "~/.config/autostart/alacritty.desktop"
+
+[hooks]
+start = [
+    "./scripts/start-alacritty.sh" # start the program with command or custom script
+]
+pre_install = [
+    "./scripts/install-deps.sh",
+    "mkdir -p ~/.config/alacritty"
+]
+post_install = [
+    "alacritty --version"
+]
+pre_remove = [
+    "./scripts/uninstall-deps.sh"
+]
 ```
 
 ### Global Configuration
 
-```yaml
-name: my-dotfiles # optional name
-namespace: johndoe # namespace is used to prevent conflicts
-description: My personal dotfiles for hyprland
-backup_path: ~/.local/state/dotkit/backup # default
+```toml
+name = "my-dotfiles" # optional name
+namespace = "johndoe" # namespace is used to prevent conflicts
+description = "My personal dotfiles for hyprland"
+backup_path = "~/.local/state/dotkit/backup" # default
+
 # Global hooks, runs before any module is installed
-hooks: 
-modules:
-    terminal:
-        # Path type (inferred)
-        - source:
-            location: ./alacritty
-            enable: true
-        # Git type (inferred)
-        - source:
-            url: https://github.com/my-alacritty-config.git
-            branch: main
-            ref: v1.0.0
-            enable: false
-        # Module type (inferred)
-        - source:
-            config:
-                name: alacritty
-                category: terminal
-                files:
-                    - source: ./alacritty.toml
-                      target: ~/.config/alacritty/alacritty.toml
+[hooks]
+
+[[modules]]
+name = "terminal"
+
+# Path type (inferred)
+[[modules.sources]]
+location = "./alacritty"
+enable = true
+
+# Git type (inferred)
+[[modules.sources]]
+url = "https://github.com/my-alacritty-config.git"
+branch = "main"
+ref = "v1.0.0"
+enable = false
+
+# Module type (inferred)
+[[modules.sources]]
+[modules.sources.config]
+name = "alacritty"
+category = "terminal"
+
+[[modules.sources.config.files]]
+source = "./alacritty.toml"
+target = "~/.config/alacritty/alacritty.toml"
 ```
 
 ### Example Configuration Directory
 
 ```
-├── config.yaml
+├── config.toml
 ├── scripts/
 │   └── ... 
 ├── alacritty/
@@ -258,12 +276,12 @@ modules:
 │   ├── screenshots/
 │   │   └── ...
 │   ├── install-deps.sh
-│   └── config.yaml
+│   └── config.toml
 ├── kitty/
-│   ├── config.yaml
+│   ├── config.toml
 │   └── kitty.conf
 └── waybar/
-    ├── config.yaml
+    ├── config.toml
     ├── waybar.desktop
     └── waybar.conf
 ```
