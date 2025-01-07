@@ -82,6 +82,7 @@ fn createTestStep(
         "tests/core/config_test.zig",
         "tests/core/zig-toml_test.zig",
         "tests/core/parser_test.zig",
+        "tests/fs/symlink_test.zig",
     };
 
     // Create toml dependency once
@@ -93,6 +94,14 @@ fn createTestStep(
         .root_source_file = b.path("src/core.zig"),
         .imports = &.{
             .{ .name = "toml", .module = toml_module },
+        },
+    });
+
+    // Create fs module with core dependency
+    const fs_module = b.createModule(.{
+        .root_source_file = b.path("src/fs.zig"),
+        .imports = &.{
+            .{ .name = "core", .module = core_module },
         },
     });
 
@@ -109,14 +118,15 @@ fn createTestStep(
             .name = name,
         });
 
-        // Add required dependencies
-        test_artifact.root_module.addImport("core", core_module);
+        // Add required dependencies in correct order
         test_artifact.root_module.addImport("toml", toml_module);
+        test_artifact.root_module.addImport("core", core_module);
+        test_artifact.root_module.addImport("fs", fs_module);
 
         // Create run step for this test
         const run_test = b.addRunArtifact(test_artifact);
 
-        // Make test output visible
+        // Enable test output visibility
         run_test.has_side_effects = true;
 
         // Add to main test step
