@@ -1,9 +1,11 @@
 const std = @import("std");
 const output = @import("output.zig");
-const version = @import("version");
+const version = @import("../version.zig").version;
 const validation = @import("validation.zig");
 const prompt = @import("prompt.zig");
 const params = @import("params.zig");
+const err = @import("utils").err;
+
 pub const Command = enum {
     init,
     list,
@@ -21,33 +23,53 @@ pub fn run(allocator: std.mem.Allocator) !void {
     var args = try std.process.argsAlloc(allocator);
     defer std.process.argsFree(allocator, args);
 
+    // Initialize error handler with correct scope
+    var error_handler = err.ErrorHandler.init(.cli);
+
     const issue_url = "https://github.com/richen604/dotkit/issues";
-    const banner_text = try std.fmt.allocPrint(std.heap.page_allocator, "🥡 Dotkit - v{s} Alpha - Issues: {s}", .{ version.version, issue_url });
+    const banner_text = try std.fmt.allocPrint(std.heap.page_allocator, "🥡 Dotkit - v{s} Alpha - Issues: {s}", .{ version, issue_url });
     defer std.heap.page_allocator.free(banner_text);
     const colored_title = try output.color(banner_text, output.Color.theme.orange);
     defer std.heap.page_allocator.free(colored_title);
     try output.showBanner(colored_title);
 
     if (args.len < 2) {
-        // TODO: Remove debug output once we have a proper CLI
         try showDebugOutput();
 
         try showUsage();
-        return;
+        return err.DotkitError.MissingArgument;
     }
 
     // Parse command
-    const cmd = Command.fromString(args[1]) catch {
-        try output.showError("Unknown command: {s}", .{args[1]});
+    const cmd = Command.fromString(args[1]) catch |e| {
+        error_handler.handle(.{
+            .error_type = err.DotkitError.InvalidCommand,
+            .message = try std.fmt.allocPrint(allocator, "Unknown command: {s}", .{args[1]}),
+            .source = e,
+        });
         try showUsage();
-        return;
+        return err.DotkitError.InvalidCommand;
     };
 
-    // Execute command
+    // Execute command with error handling
     switch (cmd) {
         .init => {
-            try validation.rules.init.validate(args[2..]);
-            try cmdInit();
+            validation.rules.init.validate(args[2..]) catch |e| {
+                error_handler.handle(.{
+                    .error_type = err.DotkitError.InvalidArgument,
+                    .message = "Invalid arguments for init command",
+                    .source = e,
+                });
+                return err.DotkitError.InvalidArgument;
+            };
+            cmdInit() catch |e| {
+                error_handler.handle(.{
+                    .error_type = err.DotkitError.ConfigValidationFailed,
+                    .message = "Failed to initialize configuration",
+                    .source = e,
+                });
+                return err.DotkitError.ConfigValidationFailed;
+            };
         },
         .list => {
             try validation.rules.list.validate(args[2..]);

@@ -1,4 +1,5 @@
 const std = @import("std");
+const err = @import("utils").err;
 
 /// Represents a file mapping in a module configuration
 pub const FileMapping = struct {
@@ -51,17 +52,6 @@ pub const SourceType = enum {
     module,
 };
 
-/// Error set for configuration validation
-pub const ConfigError = error{
-    MissingName,
-    MissingNamespace,
-    MissingCategory,
-    MissingPathLocation,
-    MissingGitUrl,
-    MissingModuleConfig,
-    InvalidConfig,
-};
-
 /// Represents a module source configuration
 pub const Source = struct {
     type: ?SourceType = null,
@@ -80,16 +70,16 @@ pub const Source = struct {
         return .path; // default to path type
     }
 
-    pub fn validate(self: *Source) ConfigError!void {
+    pub fn validate(self: *Source) err.DotkitError!void {
         // Infer and set type if not explicitly set
         if (self.type == null) {
             self.type = self.inferType();
         }
 
         switch (self.type.?) {
-            .path => if (self.location == null) return ConfigError.MissingPathLocation,
-            .git => if (self.url == null) return ConfigError.MissingGitUrl,
-            .module => if (self.module == null) return ConfigError.MissingModuleConfig,
+            .path => if (self.location == null) return err.DotkitError.MissingPathLocation,
+            .git => if (self.url == null) return err.DotkitError.MissingGitUrl,
+            .module => if (self.module == null) return err.DotkitError.MissingModuleConfig,
         }
     }
 
@@ -168,10 +158,10 @@ pub const ModuleConfig = struct {
         if (self.hooks) |*h| h.deinit(allocator);
     }
 
-    pub fn validate(self: ModuleConfig) ConfigError!void {
-        if (self.name.len == 0) return ConfigError.MissingName;
-        if (self.namespace.len == 0) return ConfigError.MissingNamespace;
-        if (self.category.len == 0) return ConfigError.MissingCategory;
+    pub fn validate(self: ModuleConfig) err.DotkitError!void {
+        if (self.name.len == 0) return err.DotkitError.MissingName;
+        if (self.namespace.len == 0) return err.DotkitError.MissingNamespace;
+        if (self.category.len == 0) return err.DotkitError.MissingCategory;
     }
 };
 
@@ -237,8 +227,8 @@ pub const GlobalConfig = struct {
         allocator.free(self.modules);
     }
 
-    pub fn validate(self: GlobalConfig) ConfigError!void {
-        if (self.namespace.len == 0) return ConfigError.MissingNamespace;
+    pub fn validate(self: GlobalConfig) err.DotkitError!void {
+        if (self.namespace.len == 0) return err.DotkitError.MissingNamespace;
 
         // Validate all sources in all modules
         for (self.modules) |module| {

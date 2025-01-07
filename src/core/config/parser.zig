@@ -1,6 +1,7 @@
 const std = @import("std");
 const schema = @import("schema.zig");
 const toml = @import("toml");
+const err = @import("utils").err;
 
 /// Get the error set from the TOML parser's parseFile function
 fn TomlParseError(comptime T: type) type {
@@ -11,9 +12,9 @@ fn TomlParseError(comptime T: type) type {
 // Consider taking ownership of result.value instead of cloning
 
 /// Combined error set for parsing operations
-pub const ParseError = TomlParseError(schema.ModuleConfig) || schema.ConfigError;
+pub const ParseErr = TomlParseError(schema.ModuleConfig) || err.DotkitError;
 
-pub fn loadModuleConfig(allocator: std.mem.Allocator, path: []const u8) ParseError!schema.ModuleConfig {
+pub fn loadModuleConfig(allocator: std.mem.Allocator, path: []const u8) ParseErr!schema.ModuleConfig {
     var parser = toml.Parser(schema.ModuleConfig).init(allocator);
     defer parser.deinit();
 
@@ -29,7 +30,7 @@ pub fn loadModuleConfig(allocator: std.mem.Allocator, path: []const u8) ParseErr
     return copied_config;
 }
 
-pub fn loadGlobalConfig(allocator: std.mem.Allocator, path: []const u8) ParseError!schema.GlobalConfig {
+pub fn loadGlobalConfig(allocator: std.mem.Allocator, path: []const u8) ParseErr!schema.GlobalConfig {
     var parser = toml.Parser(schema.GlobalConfig).init(allocator);
     defer parser.deinit();
 

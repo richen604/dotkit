@@ -1,18 +1,8 @@
 const std = @import("std");
 const core = @import("core");
 const schema = core.config.schema;
-
-pub const SymlinkError = error{
-    SourceNotFound,
-    TargetExists,
-    InvalidPath,
-    PermissionDenied,
-    HomeNotFound,
-    NotASymlink,
-    CircularLink,
-    BackupFailed,
-    IsDirectory,
-};
+const err = @import("utils").err;
+const fs = @import("utils").fs;
 
 pub const LinkOptions = struct {
     backup: bool = true,
@@ -38,17 +28,24 @@ pub const SymlinkManager = struct {
     }
 
     pub fn createLink(self: *SymlinkManager, mapping: schema.FileMapping, options: LinkOptions) !void {
-        const expanded_source = try expandPath(self.allocator, mapping.source);
+        const expanded_source = expandPath(self.allocator, mapping.source) catch {
+            return err.DotkitError.SymlinkError;
+        };
         defer self.allocator.free(expanded_source);
+
+        // Source must exist
+        if (!try fs.exists(expanded_source)) {
+            return err.DotkitError.SourceNotFound;
+        }
 
         const expanded_target = try expandPath(self.allocator, mapping.target);
         defer self.allocator.free(expanded_target);
 
         // Verify source exists and get its type
-        const source_stat = std.fs.cwd().statFile(expanded_source) catch |err| {
-            return switch (err) {
-                error.FileNotFound => error.SourceNotFound,
-                else => err,
+        const source_stat = std.fs.cwd().statFile(expanded_source) catch |e| {
+            return switch (e) {
+                error.FileNotFound => err.DotkitError.SourceNotFound,
+                else => e,
             };
         };
 
@@ -70,10 +67,11 @@ pub const SymlinkManager = struct {
 
         // Handle existing target
         const target_exists = blk: {
-            std.fs.cwd().access(expanded_target, .{}) catch |err| switch (err) {
+            const result = std.fs.cwd().access(expanded_target, .{}) catch |e| switch (e) {
                 error.FileNotFound => break :blk false,
-                else => |e| return e,
+                else => return e,
             };
+            _ = result; // Use the result to avoid the error
             break :blk true;
         };
 
@@ -89,9 +87,9 @@ pub const SymlinkManager = struct {
             }
 
             // Remove existing target
-            std.fs.cwd().deleteFile(expanded_target) catch |err| switch (err) {
-                error.FileNotFound => {},
-                else => |e| return e,
+            std.fs.cwd().deleteFile(expanded_target) catch |e| switch (e) {
+                error.FileNotFound => {}, // Ignore if file is already gone
+                else => return e,
             };
         }
 
@@ -128,10 +126,10 @@ pub const SymlinkManager = struct {
 
         // Verify it's a symlink before removing
         var link_buf: [std.fs.MAX_PATH_BYTES]u8 = undefined;
-        _ = std.fs.cwd().readLink(expanded_target, &link_buf) catch |err| {
-            return switch (err) {
-                error.NotLink => error.NotASymlink,
-                else => err,
+        _ = std.fs.cwd().readLink(expanded_target, &link_buf) catch |e| {
+            return switch (e) {
+                error.NotLink => err.DotkitError.NotASymlink,
+                else => e,
             };
         };
 
@@ -165,10 +163,10 @@ pub const SymlinkManager = struct {
         }
 
         // If source is a file, check if target would create a directory with the same name
-        const source_stat = std.fs.cwd().statFile(source) catch |err| {
-            return switch (err) {
+        const source_stat = std.fs.cwd().statFile(source) catch |e| {
+            return switch (e) {
                 error.FileNotFound => error.SourceNotFound,
-                else => err,
+                else => e,
             };
         };
 
