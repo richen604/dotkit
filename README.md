@@ -286,6 +286,34 @@ target = "~/.config/alacritty/alacritty.toml"
     └── waybar.conf
 ```
 
+### State Management
+
+Dotkit promotes explicit state management through clear separation of:
+
+1. **Static Configuration** - Version controlled, reproducible files
+2. **State Files** - User-specific, mutable data that should live outside version control
+
+This is an entirely optional feature, but it is highly recommended.
+
+```toml
+[[files]]
+source = "./alacritty/alacritty.toml"
+target = "~/.config/alacritty/alacritty.toml"
+state = false  # default: static config file
+
+[[files]]
+source = "./nvim/sessions"
+target = "~/.local/share/nvim/sessions"
+state = true   # marks as mutable state directory
+```
+
+This approach:
+- Makes state management explicit and intentional
+- Prevents accidental commits of personal data
+- Simplifies sharing configurations
+- Provides clear upgrade paths
+- Works well with backup systems
+
 ## Command Line Interface
 
 ```bash
