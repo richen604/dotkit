@@ -316,7 +316,7 @@ dotkit eject [module]            # ejects by converting symlinks to regular file
 - [x] Simple TOML config parser
 - [x] Core symlink operations (create/remove)
 - [x] Essential error handling
-- [ ] Unit test framework
+- [x] Unit test framework
 
 ### Phase 2: Core Features (Week 2-3)
 - [ ] Module system implementation

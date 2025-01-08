@@ -1,83 +1,108 @@
 const std = @import("std");
 const testing = std.testing;
 const config = @import("core").config;
+const helpers = @import("helpers");
 
-test "@core.config.parser.load_module_config" {
-    // Load and verify the config from the fixture file
-    var module_config = try config.parser.loadModuleConfig(testing.allocator, "tests/fixtures/module.toml");
-    defer module_config.deinit(testing.allocator);
+test "config parser tests" {
+    const allocator = testing.allocator;
+    var suite = helpers.TestSuite.init(allocator, "Config Parser");
+    defer suite.deinit();
 
-    try testing.expectEqualStrings("test-module", module_config.name);
-    try testing.expectEqualStrings("test", module_config.namespace);
+    // Module config loading test
+    try suite.runTest("load module config", struct {
+        fn run() !void {
+            var module_config = try config.parser.loadModuleConfig(testing.allocator, "tests/fixtures/module.toml");
+            defer module_config.deinit(testing.allocator);
 
-    std.debug.print("\nModule Config:\n", .{});
-    std.debug.print("  name: {s}\n  namespace: {s}\n  category: {s}\n", .{
-        module_config.name,
-        module_config.namespace,
-        module_config.category,
-    });
-    if (module_config.description) |desc| {
-        std.debug.print("  description: {s}\n", .{desc});
-    }
+            try testing.expectEqualStrings("test-module", module_config.name);
+            try testing.expectEqualStrings("test", module_config.namespace);
+            try testing.expectEqualStrings("testing", module_config.category);
 
-    std.debug.print("\n  Files ({d}):\n", .{module_config.files.len});
-    for (module_config.files) |file| {
-        std.debug.print("    - source: {s}\n      target: {s}\n      executable: {}\n", .{
-            file.source,
-            file.target,
-            file.executable,
-        });
-    }
-}
-
-test "@core.config.parser.invalid_file" {
-    try testing.expectError(error.FileNotFound, config.parser.loadModuleConfig(testing.allocator, "nonexistent.toml"));
-}
-
-test "@core.config.parser.load_global_config" {
-    // Load and verify the config from the fixture file
-    var global_config = try config.parser.loadGlobalConfig(testing.allocator, "tests/fixtures/global.toml");
-    defer global_config.deinit(testing.allocator);
-
-    try testing.expectEqualStrings("test-global", global_config.namespace);
-    if (global_config.name) |name| {
-        try testing.expectEqualStrings("test-config", name);
-    }
-
-    std.debug.print("\nGlobal Config:\n", .{});
-    if (global_config.name) |name| {
-        std.debug.print("  name: {s}\n", .{name});
-    }
-    std.debug.print("  namespace: {s}\n", .{global_config.namespace});
-    if (global_config.description) |desc| {
-        std.debug.print("  description: {s}\n", .{desc});
-    }
-    if (global_config.backup_path) |path| {
-        std.debug.print("  backup_path: {s}\n", .{path});
-    }
-
-    std.debug.print("\n  Modules ({d}):\n", .{global_config.modules.len});
-    for (global_config.modules) |module| {
-        std.debug.print("    {s}:\n", .{module.name});
-        for (module.sources) |source| {
-            std.debug.print("      - type: {?}\n", .{source.type});
-            if (source.location) |loc| {
-                std.debug.print("        location: {s}\n", .{loc});
+            if (module_config.description) |desc| {
+                try testing.expectEqualStrings("A test module", desc);
             }
-            if (source.url) |url| {
-                std.debug.print("        url: {s}\n", .{url});
-            }
-            if (source.branch) |branch| {
-                std.debug.print("        branch: {s}\n", .{branch});
-            }
-            if (source.ref) |ref| {
-                std.debug.print("        ref: {s}\n", .{ref});
-            }
-            std.debug.print("        enabled: {}\n", .{source.enable});
+
+            // Verify files array
+            try testing.expect(module_config.files.len == 1);
+            const file = module_config.files[0];
+            try testing.expectEqualStrings("src/test", file.source);
+            try testing.expectEqualStrings("~/.config/test", file.target);
         }
-    }
+    }.run);
+
+    // Invalid file test
+    try suite.runTest("invalid file handling", struct {
+        fn run() !void {
+            try testing.expectError(error.FileNotFound, config.parser.loadModuleConfig(testing.allocator, "nonexistent.toml"));
+        }
+    }.run);
+
+    // Global config loading test
+    try suite.runTest("load global config", struct {
+        fn run() !void {
+            var global_config = try config.parser.loadGlobalConfig(testing.allocator, "tests/fixtures/global.toml");
+            defer global_config.deinit(testing.allocator);
+
+            try testing.expectEqualStrings("test-global", global_config.namespace);
+
+            if (global_config.name) |name| {
+                try testing.expectEqualStrings("test-config", name);
+            }
+
+            if (global_config.description) |desc| {
+                try testing.expectEqualStrings("A test global config", desc);
+            }
+
+            if (global_config.backup_path) |path| {
+                try testing.expectEqualStrings("~/.backup", path);
+            }
+
+            // Verify modules
+            try testing.expect(global_config.modules.len == 1);
+            const module = global_config.modules[0];
+            try testing.expectEqualStrings("core", module.name);
+
+            // Verify sources
+            try testing.expect(module.sources.len == 1);
+            const source = module.sources[0];
+            if (source.url) |url| {
+                try testing.expectEqualStrings("https://github.com/example/core.git", url);
+            }
+            try testing.expect(source.enable);
+        }
+    }.run);
+
+    // Invalid global config file test
+    try suite.runTest("invalid global file handling", struct {
+        fn run() !void {
+            try testing.expectError(error.FileNotFound, config.parser.loadGlobalConfig(testing.allocator, "nonexistent.toml"));
+        }
+    }.run);
+
+    // Print test results
+    suite.printResults();
 }
 
-test "@core.config.parser.invalid_global_file" {
-    try testing.expectError(error.FileNotFound, config.parser.loadGlobalConfig(testing.allocator, "nonexistent.toml"));
+// Helper function to print parsed config details for debugging
+fn printParsedConfig(cfg: anytype) void {
+    const T = @TypeOf(cfg);
+    const type_info = @typeInfo(T);
+
+    switch (type_info) {
+        .Struct => |info| {
+            std.debug.print("\nParsed {s}:\n", .{@typeName(T)});
+            inline for (info.fields) |field| {
+                const value = @field(cfg, field.name);
+                switch (@TypeOf(value)) {
+                    []const u8 => std.debug.print("  {s}: {s}\n", .{ field.name, value }),
+                    ?[]const u8 => if (value) |v| {
+                        std.debug.print("  {s}: {s}\n", .{ field.name, v });
+                    },
+                    []const config.schema.Source => std.debug.print("  {s}: {d} sources\n", .{ field.name, value.len }),
+                    else => {}, // Skip other types
+                }
+            }
+        },
+        else => {},
+    }
 }

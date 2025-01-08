@@ -137,6 +137,11 @@ fn createTestStep(
         },
     });
 
+    // Create helpers module
+    const helpers_module = b.createModule(.{
+        .root_source_file = b.path("tests/helpers.zig"),
+    });
+
     // Create and configure each test artifact
     for (test_files) |test_file| {
         // Extract just the filename without path and extension
@@ -156,6 +161,7 @@ fn createTestStep(
         test_artifact.root_module.addImport("core", core_module);
         test_artifact.root_module.addImport("fs", fs_module);
         test_artifact.root_module.addImport("cli", cli_module);
+        test_artifact.root_module.addImport("helpers", helpers_module);
         // Create run step for this test
         const run_test = b.addRunArtifact(test_artifact);
 
