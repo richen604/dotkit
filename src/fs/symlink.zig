@@ -159,13 +159,13 @@ pub const SymlinkManager = struct {
     fn checkCircularLink(_: *SymlinkManager, source: []const u8, target: []const u8) !void {
         // If target would be created inside the source path, it's circular
         if (std.mem.startsWith(u8, target, source)) {
-            return error.CircularLink;
+            return err.DotkitError.CircularLink;
         }
 
         // If source is a file, check if target would create a directory with the same name
         const source_stat = std.fs.cwd().statFile(source) catch |e| {
             return switch (e) {
-                error.FileNotFound => error.SourceNotFound,
+                error.FileNotFound => err.DotkitError.SourceNotFound,
                 else => e,
             };
         };
@@ -178,17 +178,17 @@ pub const SymlinkManager = struct {
             var iter = target_components;
             while (iter.next()) |component| {
                 if (std.mem.eql(u8, component, source_basename)) {
-                    return error.CircularLink;
+                    return err.DotkitError.CircularLink;
                 }
             }
         }
     }
 
     fn expandPath(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
-        if (path.len == 0) return error.InvalidPath;
+        if (path.len == 0) return err.DotkitError.InvalidPath;
 
         if (path[0] == '~') {
-            const home = std.posix.getenv("HOME") orelse return error.HomeNotFound;
+            const home = std.posix.getenv("HOME") orelse return err.DotkitError.HomeNotFound;
             return std.fmt.allocPrint(allocator, "{s}{s}", .{
                 home,
                 path[1..],

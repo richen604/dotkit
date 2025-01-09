@@ -1,6 +1,7 @@
 const std = @import("std");
 const builtin = @import("builtin");
 
+// TODO: refactor: reorganize modules into a single struct
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});

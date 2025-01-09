@@ -288,31 +288,34 @@ target = "~/.config/alacritty/alacritty.toml"
 
 ### State Management
 
-Dotkit promotes explicit state management through clear separation of:
+Dotkit manages both static configurations and state files through explicit declarations:
 
-1. **Static Configuration** - Version controlled, reproducible files
-2. **State Files** - User-specific, mutable data that should live outside version control
+1. **Static Configuration** - Static files 
+2. **State Files** - User-specific, mutable data
 
-This is an entirely optional feature, but it is highly recommended.
+State files are an optional feature, but it is highly recommended regarding system design.
+Dotfile configurations often hold dynamic state 
 
 ```toml
+
+# state is false by default
 [[files]]
 source = "./alacritty/alacritty.toml"
 target = "~/.config/alacritty/alacritty.toml"
-state = false  # default: static config file
 
 [[files]]
 source = "./nvim/sessions"
 target = "~/.local/share/nvim/sessions"
-state = true   # marks as mutable state directory
+state = true   # marks as managed state directory
 ```
 
 This approach:
 - Makes state management explicit and intentional
-- Prevents accidental commits of personal data
-- Simplifies sharing configurations
-- Provides clear upgrade paths
-- Works well with backup systems
+- Provides controlled state file management
+- Enables proper NixOS integration
+- Simplifies configuration sharing
+- Supports automated backup/restore workflows
+- Allows for state file versioning when desired
 
 ## Command Line Interface
 
