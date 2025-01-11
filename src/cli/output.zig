@@ -1,9 +1,10 @@
 const std = @import("std");
+const consts = @import("consts");
+pub const Color = consts.Color;
 
 pub fn showBanner(text: []const u8) !void {
     const stdout = std.io.getStdOut().writer();
-    const line = "━━━━━━━━━━━━━━━━━━━━━━";
-    try stdout.print("{s}\n{s}\n{s}\n", .{ line, text, line });
+    try stdout.print("{s}\n{s}\n{s}\n", .{ consts.ui.banner.line, text, consts.ui.banner.line });
 }
 
 pub fn printBoxed(comptime fmt: []const u8, args: anytype) !void {
@@ -79,11 +80,11 @@ pub const Spinner = struct {
     frame: usize,
     timer: std.time.Timer,
 
-    const frames = [_][]const u8{ "⠋", "⣯", "⣟", "⡿", "⢿", "⣻", "⣽", "⣾" };
+    const frames = consts.ui.spinner.frames;
 
     pub fn tick(self: *Spinner) !void {
         const elapsed = self.timer.read();
-        if (elapsed >= 80 * std.time.ns_per_ms) {
+        if (elapsed >= consts.ui.spinner.interval_ms * std.time.ns_per_ms) {
             self.frame = (self.frame + 1) % frames.len;
             const stdout = std.io.getStdOut().writer();
             const colored_frame = try color(frames[self.frame], Color.theme.orange);
@@ -103,7 +104,7 @@ pub const Spinner = struct {
     pub fn success(self: *Spinner, message: ?[]const u8) !void {
         const stdout = std.io.getStdOut().writer();
         const final_message = message orelse self.message;
-        const colored_checkmark = try color("✓", Color.green);
+        const colored_checkmark = try color(consts.ui.indicators.success, Color.green);
         defer std.heap.page_allocator.free(colored_checkmark);
         try stdout.print("\r\x1b[K{s} {s}\n", .{ colored_checkmark, final_message });
     }
@@ -121,36 +122,6 @@ pub fn createSpinner(message: []const u8) !Spinner {
         .timer = try std.time.Timer.start(),
     };
 }
-
-pub const Color = struct {
-    code: []const u8,
-
-    // Theme colors using RGB values for precise control
-    pub const theme = struct {
-        pub const orange = Color{ .code = "\x1b[38;2;255;153;0m" }; // #FF9900
-        pub const cyan = Color{ .code = "\x1b[38;2;0;204;204m" }; // #00CCCC
-    };
-
-    // ANSI standard colors for basic terminal support
-    pub const red = Color{ .code = "\x1b[31m" };
-    pub const green = Color{ .code = "\x1b[32m" };
-    pub const yellow = Color{ .code = "\x1b[33m" };
-    pub const blue = Color{ .code = "\x1b[34m" };
-    pub const magenta = Color{ .code = "\x1b[35m" };
-    pub const cyan = Color{ .code = "\x1b[36m" };
-    pub const white = Color{ .code = "\x1b[37m" };
-
-    // Create a color from RGB values
-    pub fn rgb(r: u8, g: u8, b: u8) Color {
-        return .{
-            .code = std.fmt.allocPrint(
-                std.heap.page_allocator,
-                "\x1b[38;2;{d};{d};{d}m",
-                .{ r, g, b },
-            ) catch "\x1b[37m", // Fallback to white on allocation failure
-        };
-    }
-};
 
 pub fn color(text: []const u8, col: Color) ![]const u8 {
     return try std.fmt.allocPrint(

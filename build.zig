@@ -52,6 +52,10 @@ fn createExecutable(
         .root_source_file = b.path("src/utils.zig"),
     });
 
+    const consts_module = b.createModule(.{
+        .root_source_file = b.path("src/consts.zig"),
+    });
+
     // Add toml dependency
     const toml_dep = b.dependency("zig-toml", .{});
     const toml_module = toml_dep.module("zig-toml");
@@ -62,6 +66,7 @@ fn createExecutable(
         .imports = &.{
             .{ .name = "utils", .module = utils_module },
             .{ .name = "version", .module = version_module },
+            .{ .name = "consts", .module = consts_module },
         },
     });
 
@@ -69,7 +74,7 @@ fn createExecutable(
     exe.root_module.addImport("utils", utils_module);
     exe.root_module.addImport("cli", cli_module);
     exe.root_module.addImport("toml", toml_module);
-
+    exe.root_module.addImport("consts", consts_module);
     return exe;
 }
 
@@ -128,6 +133,11 @@ fn createTestStep(
         },
     });
 
+    // Create consts module
+    const consts_module = b.createModule(.{
+        .root_source_file = b.path("src/consts.zig"),
+    });
+
     // Create cli module with core and utils dependencies
     const cli_module = b.createModule(.{
         .root_source_file = b.path("src/cli.zig"),
@@ -135,6 +145,7 @@ fn createTestStep(
             .{ .name = "core", .module = core_module },
             .{ .name = "utils", .module = utils_module },
             .{ .name = "version", .module = version_module },
+            .{ .name = "consts", .module = consts_module },
         },
     });
 
@@ -163,6 +174,8 @@ fn createTestStep(
         test_artifact.root_module.addImport("fs", fs_module);
         test_artifact.root_module.addImport("cli", cli_module);
         test_artifact.root_module.addImport("helpers", helpers_module);
+        test_artifact.root_module.addImport("consts", consts_module);
+
         // Create run step for this test
         const run_test = b.addRunArtifact(test_artifact);
 
