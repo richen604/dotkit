@@ -104,7 +104,6 @@ fn createTestStep(
         "tests/core/zig-toml_test.zig",
         "tests/core/parser_test.zig",
         "tests/fs/symlink_test.zig",
-        "tests/core/module_test.zig",
     };
 
     // Create toml dependency once

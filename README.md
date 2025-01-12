@@ -157,14 +157,13 @@ src/
 │   ├── config.zig            # Re-exports config components
 │   │   ├── parser.zig        # YAML config parsing
 │   │   ├── schema.zig        # Config schema definitions
+│   │   ├── loader.zig        # config loading/initialization
 │   │   └── validator.zig     # Config validation
-│   ├── module.zig            # Re-exports module components
-│   │   ├── manager.zig       # Module lifecycle management
-│   │   ├── loader.zig        # Module loading/initialization
-│   │   └── validator.zig     # Module validation
-│   └── source.zig            # Re-exports source components
-│       ├── git.zig           # Git repository sources
-│       └── path.zig          # Local filesystem sources
+│   ├── source.zig            # Re-exports source components
+│   │   ├── git.zig           # Git repository sources
+│   │   ├── path.zig          # Local filesystem sources
+│   │   └── validator.zig     # Source validation
+│   └── cache.zig            # Cache management
 ├── fs.zig                    # Re-exports fs components
 │   ├── manager.zig           # High-level fs operations
 │   ├── backup.zig            # Config backup/restore
@@ -366,30 +365,26 @@ dotkit eject [module]            # ejects by converting symlinks to regular file
 
 ### Phase 2: Core Features (Week 2-3)
 
-- [ ] Module system implementation
-  - [x] Basic module loading and state management
-  - [x] Module validation and error handling
-  - [ ] Source management (git/local)
-  - [ ] Module installation/removal
-  - [ ] State persistence
-  - [ ] Basic hooks (pre/post install)
-  - [ ] Module caching
-    - [ ] Cache module metadata
-    - [ ] Cache git repositories
-    - [ ] Cache module state
-    - [ ] Cache invalidation strategy
-- [ ] Config file validation
-- [ ] Backup/restore functionality
+- [ ] Core Manager Implementation
+  - [ ] Config/Module shared functionality
+  - [ ] Source handling (git/local)
+  - [ ] Cache management
+  - [ ] State tracking
+- [ ] Filesystem Manager
+  - [ ] Symlink operations
+  - [ ] Backup/restore
+  - [ ] Path resolution
+- [ ] Validation Manager
+  - [ ] Schema validation
+  - [ ] Path validation
+  - [ ] Source validation
+  - [ ] Hook validation
 - [ ] Integration tests
+  - [ ] Manager integration tests
+  - [ ] End-to-end workflow tests
+  - [ ] Error handling tests
 
-### Phase 3: NixOS Integration (Week 3-4)
-
-- [ ] Home-Manager module
-- [ ] NixOS module
-- [ ] Nix flake integration
-- [ ] Integration tests for Nix features
-
-### Phase 4: Initial Content Creation (Week 4-5)
+### Phase 4: Initial Content Creation (Week 3-4)
 
 - [ ] Convert popular dotfile repositories to dotkit format
 - [ ] Create documentation and examples for each converted module
@@ -397,7 +392,7 @@ dotkit eject [module]            # ejects by converting symlinks to regular file
 - [ ] Quality assurance process for converted modules
 - [ ] Create automated conversion tools where possible
 
-### Phase 5: Marketplace Website (Week 5-6)
+### Phase 5: Marketplace Website (Week 4-5)
 
 - [ ] Module marketplace frontend with search and filtering
 - [ ] Module submission and review system
@@ -406,7 +401,14 @@ dotkit eject [module]            # ejects by converting symlinks to regular file
 - [ ] Module dependency visualization
 - [ ] API endpoints for module/config discovery
 
-### Phase 6: Polish & Release (Week 6-7)
+### Phase 6: NixOS Integration (Week 6-7)
+
+- [ ] Home-Manager module
+- [ ] NixOS module
+- [ ] Nix flake integration
+- [ ] Integration tests for Nix features
+
+### Phase 7: Polish & Release (Week 7-8)
 
 - [ ] Documentation
 - [ ] Error reporting improvements
