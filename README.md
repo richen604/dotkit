@@ -386,6 +386,7 @@ dotkit eject [module]            # ejects by converting symlinks to regular file
 
 ### Phase 4: Initial Content Creation (Week 3-4)
 
+- [ ] Hook templates
 - [ ] Convert popular dotfile repositories to dotkit format
 - [ ] Create documentation and examples for each converted module
 - [ ] Establish module metadata standards and tagging system
@@ -426,7 +427,8 @@ Planned features:
 - Profile support
 - Cli publish commands
 - Conflict resolution
-- Modes (copy/symlink/install)
+- git hooks (validate/pre-commit/pre-checkout)
+- toml serializer
 
 Unsure features:
 
