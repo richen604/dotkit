@@ -422,16 +422,29 @@ dotkit eject [module]            # ejects by converting symlinks to regular file
 
 Planned features:
 
-- Developer mode (HMR), exit reverts
-- Automated vm builder for extended development
-- Profile support
-- Cli publish commands
-- Conflict resolution
-- git hooks (validate/pre-commit/pre-checkout)
 - toml serializer
+- Developer mode (HMR), exit reverts
+- Profile support
+- git hooks (validate/pre-commit/pre-checkout)
+- Conflict resolution
+- Cli publish commands
+- Automated vm builder for extended development
 
 Unsure features:
 
-- Generations similar to home-manager
+- Generations similar to home-manager/nixos
 - Interactive module configuration wizard
 - Real-time config sync between multiple machines
+
+## FAQ
+
+### Does Dotkit handle secrets?
+
+Dotkit focuses on module management and does not include built-in encryption. For managing sensitive data in your dotfiles, we recommend using established tools like:
+
+- [Chezmoi](https://www.chezmoi.io/) for template-based secret management
+- [git-crypt](https://github.com/AGWA/git-crypt) for transparent git encryption
+- [pass](https://www.passwordstore.org/) for password management
+- [direnv](https://direnv.net/) for environment variable management
+
+These tools can be integrated with Dotkit
