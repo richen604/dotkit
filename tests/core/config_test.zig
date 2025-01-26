@@ -21,10 +21,17 @@ test "config schema tests" {
     // Module config test
     try suite.runTest("module_config", struct {
         fn run() !void {
+            var files = [_]schema.FileMapping{.{
+                .source = "src/test",
+                .target = "~/.config/test",
+                .executable = false,
+            }};
+
             var config = schema.ModuleConfig{
                 .name = "test",
                 .namespace = "test",
                 .category = "test",
+                .files = files[0..],
             };
             try config.validate();
         }

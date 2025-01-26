@@ -5,6 +5,8 @@ pub const DotkitError = error{
     // Config errors
     ConfigNotFound,
     InvalidConfig,
+    InvalidModuleFormat,
+    InvalidGlobalFormat,
     ConfigValidationFailed,
     ConfigParseError,
     MissingName,
@@ -13,6 +15,8 @@ pub const DotkitError = error{
     MissingPathLocation,
     MissingGitUrl,
     MissingModuleConfig,
+    MissingFiles,
+    MissingModules,
 
     // Module errors
     ModuleNotFound,

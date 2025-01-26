@@ -162,6 +162,7 @@ pub const ModuleConfig = struct {
         if (self.name.len == 0) return err.DotkitError.MissingName;
         if (self.namespace.len == 0) return err.DotkitError.MissingNamespace;
         if (self.category.len == 0) return err.DotkitError.MissingCategory;
+        if (self.files.len == 0) return err.DotkitError.MissingFiles;
     }
 };
 
@@ -229,6 +230,7 @@ pub const GlobalConfig = struct {
 
     pub fn validate(self: GlobalConfig) err.DotkitError!void {
         if (self.namespace.len == 0) return err.DotkitError.MissingNamespace;
+        if (self.modules.len == 0) return err.DotkitError.MissingModules;
 
         // Validate all sources in all modules
         for (self.modules) |module| {

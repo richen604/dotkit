@@ -32,31 +32,49 @@ pub fn loadConfig(allocator: std.mem.Allocator, path: []const u8) ParseErr!Confi
 
     if (module_parser.parseFile(path)) |result| {
         var module_config = result.value;
-        // If it has files array, treat as module config
-        if (module_config.files.len > 0) {
-            try module_config.validate();
+        if (module_config.validate()) {
+            // If validation succeeds, it's a valid module config
             const copied_config = try module_config.clone(allocator);
             result.deinit();
             return Config{ .module = copied_config };
+        } else |validation_err| {
+            if (validation_err == err.DotkitError.MissingFiles) {
+                // Has module fields but no files - invalid module format
+                result.deinit();
+                return err.DotkitError.InvalidModuleFormat;
+            }
         }
         result.deinit();
-    } else |_| {}
+    } else |parse_err| {
+        if (parse_err == error.FileNotFound) return error.FileNotFound;
+        if (parse_err == error.InvalidCharacter) return err.DotkitError.ConfigParseError;
+        return parse_err;
+    }
 
     // Try as global config
     var global_parser = toml.Parser(schema.GlobalConfig).init(allocator);
     defer global_parser.deinit();
 
-    var result = try global_parser.parseFile(path);
-    var global_config = result.value;
-    // If it has modules array, treat as global config
-    if (global_config.modules.len > 0) {
-        try global_config.validate();
-        const copied_config = try global_config.clone(allocator);
+    if (global_parser.parseFile(path)) |result| {
+        var global_config = result.value;
+        if (global_config.validate()) {
+            // If validation succeeds, it's a valid global config
+            const copied_config = try global_config.clone(allocator);
+            result.deinit();
+            return Config{ .global = copied_config };
+        } else |validation_err| {
+            if (validation_err == err.DotkitError.MissingModules) {
+                // Has global fields but no modules - invalid global format
+                result.deinit();
+                return err.DotkitError.InvalidGlobalFormat;
+            }
+        }
         result.deinit();
-        return Config{ .global = copied_config };
+    } else |parse_err| {
+        if (parse_err == error.FileNotFound) return error.FileNotFound;
+        if (parse_err == error.InvalidCharacter) return err.DotkitError.ConfigParseError;
+        return parse_err;
     }
 
-    // If we get here, the config is invalid
-    result.deinit();
-    return error.InvalidConfigFormat;
+    return err.DotkitError.InvalidConfig;
 }

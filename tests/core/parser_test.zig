@@ -2,6 +2,7 @@ const std = @import("std");
 const testing = std.testing;
 const config = @import("core").config;
 const helpers = @import("helpers");
+const err = @import("utils").err;
 
 test "config parser tests" {
     const allocator = testing.allocator;
@@ -82,28 +83,28 @@ test "config parser tests" {
     // Test empty config file
     try suite.runTest("empty config handling", struct {
         fn run() !void {
-            try testing.expectError(error.InvalidConfigFormat, config.parser.loadConfig(testing.allocator, "tests/fixtures/empty.toml"));
+            try testing.expectError(err.DotkitError.InvalidConfig, config.parser.loadConfig(testing.allocator, "tests/fixtures/empty.toml"));
         }
     }.run);
 
     // Test module config without files
     try suite.runTest("module without files", struct {
         fn run() !void {
-            try testing.expectError(error.InvalidConfigFormat, config.parser.loadConfig(testing.allocator, "tests/fixtures/module_no_files.toml"));
+            try testing.expectError(err.DotkitError.InvalidModuleFormat, config.parser.loadConfig(testing.allocator, "tests/fixtures/module_no_files.toml"));
         }
     }.run);
 
     // Test global config without modules
     try suite.runTest("global without modules", struct {
         fn run() !void {
-            try testing.expectError(error.InvalidConfigFormat, config.parser.loadConfig(testing.allocator, "tests/fixtures/global_no_modules.toml"));
+            try testing.expectError(err.DotkitError.InvalidGlobalFormat, config.parser.loadConfig(testing.allocator, "tests/fixtures/global_no_modules.toml"));
         }
     }.run);
 
     // Test malformed TOML
     try suite.runTest("malformed toml", struct {
         fn run() !void {
-            try testing.expectError(error.InvalidCharacter, config.parser.loadConfig(testing.allocator, "tests/fixtures/malformed.toml"));
+            try testing.expectError(err.DotkitError.ConfigParseError, config.parser.loadConfig(testing.allocator, "tests/fixtures/malformed.toml"));
         }
     }.run);
 
