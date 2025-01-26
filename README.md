@@ -389,9 +389,6 @@ dotkit eject [module]            # ejects by converting symlinks to regular file
 - [ ] Hook templates
 - [ ] Convert popular dotfile repositories to dotkit format
 - [ ] Create documentation and examples for each converted module
-- [ ] Establish module metadata standards and tagging system
-- [ ] Quality assurance process for converted modules
-- [ ] Create automated conversion tools where possible
 
 ### Phase 5: Marketplace Website (Week 4-5)
 
@@ -399,13 +396,12 @@ dotkit eject [module]            # ejects by converting symlinks to regular file
 - [ ] Module submission and review system
 - [ ] User accounts and ratings
 - [ ] Config sharing platform
-- [ ] Module dependency visualization
-- [ ] API endpoints for module/config discovery
 
 ### Phase 6: NixOS Integration (Week 6-7)
 
 - [ ] Home-Manager module
 - [ ] NixOS module
+- [ ] wrapper-manager support
 - [ ] Nix flake integration
 - [ ] Integration tests for Nix features
 
@@ -416,13 +412,12 @@ dotkit eject [module]            # ejects by converting symlinks to regular file
 - [ ] Bug fixes
 - [ ] Performance optimization
 - [ ] Security review
-- [ ] Initial release
 
 ### Future Enhancements
 
 Planned features:
 
-- toml serializer
+- toml serializer for dotkit state
 - Developer mode (HMR), exit reverts
 - Profile support
 - git hooks (validate/pre-commit/pre-checkout)
