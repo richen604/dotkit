@@ -1,0 +1,4 @@
+name = "test-module"
+namespace = "test"
+category = "testing"
+description = "A test module without files"

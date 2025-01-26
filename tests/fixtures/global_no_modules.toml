@@ -1,0 +1,4 @@
+name = "test-config"
+namespace = "test-global"
+description = "A test global config without modules"
+backup_path = "~/.backup"
