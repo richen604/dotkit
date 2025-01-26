@@ -57,11 +57,11 @@ pub const Source = struct {
     type: ?SourceType = null,
     location: ?[]const u8 = null,
     url: ?[]const u8 = null,
-    module: ?ModuleConfig = null,
+    module: ?Module = null,
     branch: ?[]const u8 = null,
     ref: ?[]const u8 = null,
     enable: bool = false,
-    config: ?ModuleConfig = null,
+    config: ?Module = null,
 
     pub fn inferType(self: Source) SourceType {
         if (self.module != null) return .module;
@@ -79,7 +79,7 @@ pub const Source = struct {
         switch (self.type.?) {
             .path => if (self.location == null) return err.DotkitError.MissingPathLocation,
             .git => if (self.url == null) return err.DotkitError.MissingGitUrl,
-            .module => if (self.module == null) return err.DotkitError.MissingModuleConfig,
+            .module => if (self.module == null) return err.DotkitError.MissingModule,
         }
     }
 
@@ -107,7 +107,7 @@ pub const Source = struct {
 };
 
 /// Represents a single module configuration
-pub const ModuleConfig = struct {
+pub const Module = struct {
     name: []const u8 = "",
     namespace: []const u8 = "",
     category: []const u8 = "",
@@ -117,13 +117,13 @@ pub const ModuleConfig = struct {
     files: []FileMapping = &[_]FileMapping{},
     hooks: ?Hooks = null,
 
-    pub fn clone(self: ModuleConfig, allocator: std.mem.Allocator) !ModuleConfig {
+    pub fn clone(self: Module, allocator: std.mem.Allocator) !Module {
         var new_files = try allocator.alloc(FileMapping, self.files.len);
         for (self.files, 0..) |file, i| {
             new_files[i] = try file.clone(allocator);
         }
 
-        return ModuleConfig{
+        return Module{
             .name = try allocator.dupe(u8, self.name),
             .namespace = try allocator.dupe(u8, self.namespace),
             .category = try allocator.dupe(u8, self.category),
@@ -141,7 +141,7 @@ pub const ModuleConfig = struct {
         };
     }
 
-    pub fn deinit(self: *ModuleConfig, allocator: std.mem.Allocator) void {
+    pub fn deinit(self: *Module, allocator: std.mem.Allocator) void {
         allocator.free(self.name);
         allocator.free(self.namespace);
         allocator.free(self.category);
@@ -158,7 +158,7 @@ pub const ModuleConfig = struct {
         if (self.hooks) |*h| h.deinit(allocator);
     }
 
-    pub fn validate(self: ModuleConfig) err.DotkitError!void {
+    pub fn validate(self: Module) err.DotkitError!void {
         if (self.name.len == 0) return err.DotkitError.MissingName;
         if (self.namespace.len == 0) return err.DotkitError.MissingNamespace;
         if (self.category.len == 0) return err.DotkitError.MissingCategory;

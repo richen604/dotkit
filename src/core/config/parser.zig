@@ -9,11 +9,11 @@ fn TomlParseError(comptime T: type) type {
 }
 
 /// Combined error set for parsing operations
-pub const ParseErr = TomlParseError(schema.ModuleConfig) || err.DotkitError;
+pub const ParseErr = TomlParseError(schema.Module) || err.DotkitError;
 
 /// Union type to hold either config type
 pub const Config = union(enum) {
-    module: schema.ModuleConfig,
+    module: schema.Module,
     global: schema.GlobalConfig,
 
     pub fn deinit(self: *Config, allocator: std.mem.Allocator) void {
@@ -27,7 +27,7 @@ pub const Config = union(enum) {
 /// Load and parse a configuration file, automatically detecting the type
 pub fn loadConfig(allocator: std.mem.Allocator, path: []const u8) ParseErr!Config {
     // First try as module config
-    var module_parser = toml.Parser(schema.ModuleConfig).init(allocator);
+    var module_parser = toml.Parser(schema.Module).init(allocator);
     defer module_parser.deinit();
 
     if (module_parser.parseFile(path)) |result| {

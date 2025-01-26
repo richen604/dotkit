@@ -14,7 +14,7 @@ pub const DotkitError = error{
     MissingCategory,
     MissingPathLocation,
     MissingGitUrl,
-    MissingModuleConfig,
+    MissingModule,
     MissingFiles,
     MissingModules,
 

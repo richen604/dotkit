@@ -27,7 +27,7 @@ test "config schema tests" {
                 .executable = false,
             }};
 
-            var config = schema.ModuleConfig{
+            var config = schema.Module{
                 .name = "test",
                 .namespace = "test",
                 .category = "test",
@@ -55,7 +55,7 @@ test "config schema tests" {
             try path_source.validate();
 
             // Test module source inference
-            const module_config = schema.ModuleConfig{
+            const module_config = schema.Module{
                 .name = "test_module",
                 .namespace = "test",
                 .category = "test",
